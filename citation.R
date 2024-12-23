@@ -131,7 +131,7 @@ article_details <- oa_fetch(
 # --- Step 7: **Filter Citing Articles** ---
 # Filter articles where the abstract mentions "tacit" or "innov"
 article_details_filtered <- article_details %>%
-  filter(str_detect(abstract, "(?i)tacit|innov") & cited_by_count > 0) 
+  filter(!is.na(abstract) & str_detect(abstract, "(?i)tacit|innov") & cited_by_count > 0)
 
 # Get list of **filtered citing article_ids** (for "from" column)
 all_article_ids_from <- article_details_filtered %>%
@@ -143,10 +143,19 @@ all_article_ids_from <- article_details_filtered %>%
 edge_list_filtered <- edge_list %>%
   inner_join(all_article_ids_from, by = c("from" = "article_id")) # Filter "from" citing articles
 
+# Check edge consistency
+if (nrow(edge_list_filtered) == 0) {
+  stop("No valid edges found after filtering. Verify data consistency.")
+}
+
+nodes_filtered <- edge_list_filtered %>%
+  pivot_longer(c(to, from), values_to = "article_id") %>%
+  distinct(article_id) %>%
+  left_join(article_details_filtered)
+
 # --- Step 9: Create Citation Network and Calculate Centrality Metrics ---
-g <- tbl_graph(nodes = all_article_ids_filtered, edges = edge_list_filtered, directed = TRUE) %>%
+g <- tbl_graph(nodes = nodes_filtered, edges = edge_list_filtered, directed = TRUE) %>%
   activate(nodes) %>%
-  left_join(article_details_filtered, by = "article_id") %>%
   filter(cited_by_count > 0 & publication_date >= 2015 & language == "en") %>%
   mutate(
     in_degree = centrality_degree(mode = "in"),
