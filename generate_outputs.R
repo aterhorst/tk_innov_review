@@ -32,7 +32,7 @@ citation_network_summary <- data.frame(
   diameter = igraph::diameter(as.igraph(g), directed = TRUE, unconnected = TRUE),  
   average_path_length = igraph::mean_distance(as.igraph(g), directed = TRUE, unconnected = TRUE)
 ) %>%
-  pivot_longer(1:9,names_to = "Metric", values_to =  "Value")
+  pivot_longer(1:9,names_to = "Metric", values_to =  "Citation_Network_Value")
 
 coauthor_network_summary <- data.frame(
   total_nodes = coauthor_net %>% activate(nodes) %>% as_tibble() %>% nrow(),
@@ -50,12 +50,9 @@ coauthor_network_summary <- data.frame(
   diameter = igraph::diameter(as.igraph(coauthor_net), directed = TRUE, unconnected = TRUE),  
   average_path_length = igraph::mean_distance(as.igraph(coauthor_net), directed = TRUE, unconnected = TRUE)  
 ) %>%
-  pivot_longer(1:9,names_to = "Metric", values_to =  "Value")
+  pivot_longer(1:9,names_to = "Metric", values_to =  "Coauthor_Network_Value")
 
-network_summary_clean <- network_summary %>% select(-Network)
-coauthor_network_summary_clean <- coauthor_network_summary %>% select(-Network)
-
-combined_stats <- full_join(network_summary_clean, coauthor_network_summary_clean, by = "Metric")
+combined_stats <- full_join(citation_network_summary, coauthor_network_summary, by = "Metric")
 
 print(xtable(combined_stats %>%
                mutate(

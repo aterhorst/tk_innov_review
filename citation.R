@@ -100,8 +100,7 @@ edge_list <- articles_filtered %>%
   mutate(
     from = str_remove(from, "https://openalex.org/"),
     to = str_remove(to, "https://openalex.org/")
-  ) %>%
-  count(from, to, name = "weight")
+  ) 
 
 # --- Step 6: Fetch metadata for all articles in the edge list ---
 all_article_ids <- edge_list %>%
@@ -141,7 +140,9 @@ all_article_ids_from <- article_details_filtered %>%
 # --- Step 8: Filter edge list to include only filtered citing articles ---
 # Retain only the "from" articles that match the filtered list
 edge_list_filtered <- edge_list %>%
-  inner_join(all_article_ids_from, by = c("from" = "article_id")) # Filter "from" citing articles
+  inner_join(all_article_ids_from, by = c("from" = "article_id")) %>%
+  group_by(to) %>%
+  count(name = "weight")
 
 # Check edge consistency
 if (nrow(edge_list_filtered) == 0) {
@@ -213,6 +214,7 @@ save(
   article_details, 
   article_details_filtered, 
   edge_list_filtered, 
+  nodes_filtered,
   g, 
   top_articles, 
   file = "citation_network_data.Rds"
