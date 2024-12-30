@@ -180,6 +180,4 @@ print(definitions_table,
       caption = "Definitions of tacit knowledge extracted from the top 50 articles.", # Add caption
       label = "tab:definition") # Add label
 
-# cluster analysis
 
-test <- article_details %>
